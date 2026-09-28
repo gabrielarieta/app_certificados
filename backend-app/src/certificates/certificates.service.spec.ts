@@ -7,12 +7,14 @@ import { CertificateFilesService } from 'src/certificate-files/certificate-files
 describe('CertificatesService', () => {
   let service: CertificatesService;
   const certificatesModel = {
+    create: jest.fn(),
     find: jest.fn(),
     findOne: jest.fn(),
     findOneAndUpdate: jest.fn(),
     findOneAndDelete: jest.fn(),
   };
   const certificateFilesService = {
+    create: jest.fn(),
     removeManyCertificateFiles: jest.fn().mockResolvedValue(undefined),
   };
 
@@ -60,6 +62,27 @@ describe('CertificatesService', () => {
       update,
       { new: true, runValidators: true },
     );
+  });
+
+  it('returns conflict when a user already has a certificate title', async () => {
+    certificatesModel.create.mockRejectedValue({ code: 11000 });
+    certificateFilesService.create.mockResolvedValue([{ _id: 'file-id' }]);
+
+    await expect(
+      service.create(
+        {
+          title: 'Duplicate title',
+          description: '',
+          emitedBy: 'Issuer',
+          emitedOn: new Date(),
+        } as never,
+        [],
+        { _id: 'owner-id' } as never,
+      ),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(
+      certificateFilesService.removeManyCertificateFiles,
+    ).toHaveBeenCalledWith(['file-id']);
   });
 
   it('scopes certificate deletion to the authenticated user', async () => {

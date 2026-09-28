@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -45,8 +46,24 @@ export class UsersService {
   }
 
   async updateById(id: string, updateUserDto: UpdateUserDto) {
-    const update = { ...updateUserDto };
-    if (update.password) {
+    const { currentPassword, ...update } = updateUserDto;
+    if (update.password !== undefined) {
+      if (!currentPassword) {
+        throw new BadRequestException('Current password is required.');
+      }
+      const currentUser = await this.usersModel
+        .findById(id)
+        .select('+password');
+      if (!currentUser) {
+        throw new NotFoundException('User not found.');
+      }
+      const passwordMatches = await bcrypt.compare(
+        currentPassword,
+        currentUser.password,
+      );
+      if (!passwordMatches) {
+        throw new UnauthorizedException('Current password is incorrect.');
+      }
       update.password = await bcrypt.hash(update.password, 10);
     }
 

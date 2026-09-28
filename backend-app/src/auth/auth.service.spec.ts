@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { UsersService } from 'src/users/users.service';
@@ -55,5 +56,38 @@ describe('AuthService', () => {
         spaceUsed: 0,
       }),
     );
+  });
+
+  it('normalizes registration email addresses', async () => {
+    const registration = plainToInstance(RegisterAuthDto, {
+      name: 'Test User',
+      email: '  TEST@EXAMPLE.COM  ',
+      password: 'secure-password',
+    });
+
+    expect(registration.email).toBe('test@example.com');
+    expect(await validate(registration)).toHaveLength(0);
+  });
+
+  it('rejects passwords outside the bcrypt byte limit', async () => {
+    const registration = plainToInstance(RegisterAuthDto, {
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'é'.repeat(37),
+    });
+
+    expect(await validate(registration)).not.toHaveLength(0);
+  });
+
+  it('returns conflict when registration email is already used', async () => {
+    usersService.create.mockRejectedValue({ code: 11000 });
+
+    await expect(
+      service.signUp({
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'secure-password',
+      }),
+    ).rejects.toMatchObject({ status: 409 });
   });
 });

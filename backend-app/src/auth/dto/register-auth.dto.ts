@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsByteLength, IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class RegisterAuthDto {
   @IsNotEmpty()
@@ -8,11 +9,14 @@ export class RegisterAuthDto {
   @IsNotEmpty()
   @IsEmail()
   @IsString()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : '',
+  )
   readonly email: string;
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(6)
+  @IsByteLength(8, 72)
   readonly password: string;
 
   constructor(name = '', email = '', password = '') {

@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import { CertificateFilesService } from 'src/certificate-files/certificate-files.service';
 import { CertificateFile } from 'src/certificate-files/entities/certificate-file.entity';
 import { User } from 'src/users/entities/user.entity';
+import { throwConflictForDuplicateKey } from 'src/utils/mongo-errors';
 
 @Injectable()
 export class CertificatesService {
@@ -30,7 +31,12 @@ export class CertificatesService {
       certificateFiles: fileIdList,
     });
 
-    return await this.certificatesModel.create(data);
+    try {
+      return await this.certificatesModel.create(data);
+    } catch (error) {
+      await this.certificateFilesService.removeManyCertificateFiles(fileIdList);
+      throwConflictForDuplicateKey(error, 'Certificate title already exists.');
+    }
   }
 
   async findAll(userId: string): Promise<Certificates[]> {
@@ -58,11 +64,16 @@ export class CertificatesService {
     updateCertificateDto: UpdateCertificateDto,
     userId: string,
   ): Promise<Certificates> {
-    const certificate = await this.certificatesModel.findOneAndUpdate(
-      { _id: id, user: userId },
-      updateCertificateDto,
-      { new: true, runValidators: true },
-    );
+    let certificate: Certificates | null;
+    try {
+      certificate = await this.certificatesModel.findOneAndUpdate(
+        { _id: id, user: userId },
+        updateCertificateDto,
+        { new: true, runValidators: true },
+      );
+    } catch (error) {
+      throwConflictForDuplicateKey(error, 'Certificate title already exists.');
+    }
 
     if (!certificate) {
       throw new NotFoundException('Certificate not found.');

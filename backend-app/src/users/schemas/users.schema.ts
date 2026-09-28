@@ -9,7 +9,7 @@ export class User extends Document implements IUser {
   @Prop()
   name: string;
 
-  @Prop({ unique: [true, 'Duplicate email entered'] })
+  @Prop({ unique: true, trim: true, lowercase: true })
   email: string;
 
   @Prop({ select: false })

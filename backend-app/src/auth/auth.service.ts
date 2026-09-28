@@ -5,6 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { AuthLoginDto } from './dto/login-auth.dto';
 import { UsersService } from 'src/users/users.service';
+import { throwConflictForDuplicateKey } from 'src/utils/mongo-errors';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -18,12 +20,17 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await this.userServices.create({
-      name,
-      email,
-      password: hashedPassword,
-      spaceUsed: 0,
-    });
+    let user: User;
+    try {
+      user = await this.userServices.create({
+        name,
+        email,
+        password: hashedPassword,
+        spaceUsed: 0,
+      });
+    } catch (error) {
+      throwConflictForDuplicateKey(error, 'Email is already registered.');
+    }
 
     const token = this.jwtService.sign({ id: user._id });
 
