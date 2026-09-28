@@ -1,0 +1,27 @@
+name: certificates-prod
+
+services:
+  mongodb:
+    image: mongo:7
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodb_data_container:/data/db
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+volumes:
+  mongodb_data_container:

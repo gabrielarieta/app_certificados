@@ -1,0 +1,91 @@
+#api app
+# compiled output
+backend-app/dist
+backend-app/node_modules
+backend-app/build
+
+# Logs
+backend-app/logs
+backend-app/*.log
+backend-app/npm-debug.log*
+backend-app/pnpm-debug.log*
+backend-app/yarn-debug.log*
+backend-app/yarn-error.log*
+backend-app/lerna-debug.log*
+
+# Tests
+backend-app/coverage
+backend-app/.nyc_output
+
+# dotenv environment variable files
+backend-app/.env
+backend-app/.env.development.local
+backend-app/.env.test.local
+backend-app/.env.production.local
+backend-app/.env.local
+
+# temp directory
+backend-app/.temp
+backend-app/.tmp
+
+# Runtime data
+backend-app/pids
+backend-app/*.pid
+backend-app/*.seed
+backend-app/*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+backend-app/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+
+#flutter app
+# Miscellaneous
+frontend-app/*.class
+frontend-app/*.log
+frontend-app/*.pyc
+frontend-app/*.swp
+frontend-app/.DS_Store
+frontend-app/.atom/
+frontend-app/.build/
+frontend-app/.buildlog/
+frontend-app/.history
+frontend-app/.svn/
+frontend-app/.swiftpm/
+frontend-app/migrate_working_dir/
+frontend-app/.env
+
+# IntelliJ related
+frontend-app/*.iml
+frontend-app/*.ipr
+frontend-app/*.iws
+frontend-app/.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+frontend-app/**/doc/api/
+frontend-app/**/ios/Flutter/.last_build_id
+frontend-app/.dart_tool/
+frontend-app/.flutter-plugins-dependencies
+frontend-app/.pub-cache/
+frontend-app/.pub/
+frontend-app/build/
+frontend-app/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+frontend-app/android/app/debug
+frontend-app/android/app/profile
+frontend-app/android/app/release
+frontend-app/android/.kotlin/
+
+# Widget Preview related
+frontend-app/.widget_preview/
