@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:organizacao_certificados/core/di/injector.dart';
 import 'package:organizacao_certificados/models/certificate.dart';
+import 'package:organizacao_certificados/models/certificate_files.dart';
 import 'package:organizacao_certificados/modules/home/home_service.dart';
 
 class CertificatesDataTable extends StatefulWidget {
@@ -16,15 +17,15 @@ class _CertificatesDataTableState extends State<CertificatesDataTable> {
   String? _hoveredCertificateId;
 
   late Future<List<Certificate>> _certificatesFuture;
-  List<Certificate>? _certificates;
 
   @override
   void initState() {
     super.initState();
+    _loadCertificates();
+  }
+
+  void _loadCertificates() {
     _certificatesFuture = homeService.getCertificates();
-    _certificatesFuture.then((data) {
-      setState(() => _certificates = data);
-    });
   }
 
   @override
@@ -33,15 +34,56 @@ class _CertificatesDataTableState extends State<CertificatesDataTable> {
     final textTheme = theme.textTheme;
     final tableHeight = MediaQuery.of(context).size.height * 0.5;
 
-    if (_certificates != null) {
-      return _buildTable(
-          context, _certificates!, theme, textTheme, tableHeight);
-    }
-
-    return SizedBox(
-      height: tableHeight,
-      child: const Center(child: CircularProgressIndicator()),
+    return FutureBuilder<List<Certificate>>(
+      future: _certificatesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return SizedBox(
+            height: tableHeight,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError) {
+          return SizedBox(
+            height: tableHeight,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Unable to load certificates.'),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => setState(_loadCertificates),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Try again'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        final certificates = snapshot.data ?? <Certificate>[];
+        if (certificates.isEmpty) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: Text('No certificates yet.')),
+          );
+        }
+        return _buildTable(
+            context, certificates, theme, textTheme, tableHeight);
+      },
     );
+  }
+
+  Future<void> _openCertificateFile(CertificateFile file) async {
+    try {
+      await homeService.openCertificateFile(file);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to open ${file.fileName}: $error')),
+      );
+    }
   }
 
   Widget _buildTable(BuildContext context, List<Certificate> certificates,
@@ -194,8 +236,8 @@ class _CertificatesDataTableState extends State<CertificatesDataTable> {
                                             file.mimeType == 'application/pdf'
                                                 ? Icons.picture_as_pdf
                                                 : Icons.image),
-                                        onPressed: () => homeService
-                                            .openCertificateFile(file),
+                                        onPressed: () =>
+                                            _openCertificateFile(file),
                                       ),
                                     ],
                                   ),

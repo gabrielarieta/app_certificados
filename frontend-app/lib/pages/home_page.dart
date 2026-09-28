@@ -8,9 +8,9 @@ import 'package:organizacao_certificados/widgets/top_table.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  void _logout(BuildContext context) {
-    Injector.I.get<AuthService>().logOut();
-    context.go(AppRoutes.login);
+  Future<void> _logout(BuildContext context) async {
+    await Injector.I.get<AuthService>().logOut();
+    if (context.mounted) context.go(AppRoutes.login);
   }
 
   @override
@@ -44,10 +44,11 @@ class HomePage extends StatelessWidget {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverToBoxAdapter(
-                child: Text('Activity history', style: theme.textTheme.titleLarge),
+                child:
+                    Text('Activity history', style: theme.textTheme.titleLarge),
               ),
             ),
-           /* SliverPadding(
+            /* SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               sliver: _ActivityListSliver(items: []),
             ), */
