@@ -5,14 +5,17 @@ import 'package:organizacao_certificados/models/certificate_files.dart';
 import 'package:organizacao_certificados/modules/home/home_service.dart';
 
 class CertificatesDataTable extends StatefulWidget {
-  const CertificatesDataTable({super.key});
+  const CertificatesDataTable({super.key, this.homeService});
+
+  final HomeService? homeService;
 
   @override
   State<CertificatesDataTable> createState() => _CertificatesDataTableState();
 }
 
 class _CertificatesDataTableState extends State<CertificatesDataTable> {
-  final homeService = Injector.I.get<HomeService>();
+  late final HomeService homeService =
+      widget.homeService ?? Injector.I.get<HomeService>();
   final Map<String, bool> _expandedMap = {};
   String? _hoveredCertificateId;
 

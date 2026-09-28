@@ -53,6 +53,7 @@ jobs:
         with:
           channel: stable
           cache: true
+      - run: printf 'API_URL=http://localhost:3000\n' > .env
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test

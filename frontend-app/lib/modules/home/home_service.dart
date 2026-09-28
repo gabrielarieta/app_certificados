@@ -10,8 +10,12 @@ import 'package:organizacao_certificados/utils/api_client.dart';
 import 'package:path_provider/path_provider.dart';
 
 class HomeService {
-  final _baseUrl = dotenv.env['API_URL']!;
-  final ApiClient _apiClient = Injector.I.get<ApiClient>();
+  HomeService({ApiClient? apiClient})
+      : _baseUrl = dotenv.env['API_URL'] ?? '',
+        _apiClient = apiClient ?? Injector.I.get<ApiClient>();
+
+  final String _baseUrl;
+  final ApiClient _apiClient;
 
   Future<List<Certificate>> getCertificates() async {
     final url = Uri.parse('$_baseUrl/certificates');
@@ -36,7 +40,7 @@ class HomeService {
     final bytes = base64Decode(fileData['data'] as String);
 
     final tempDir = await getTemporaryDirectory();
-    final safeFileName = _sanitizeFileName(file.fileName);
+    final safeFileName = sanitizeTemporaryFileName(file.fileName);
     final filePath = '${tempDir.path}/$safeFileName';
 
     final output = File(filePath);
@@ -47,12 +51,12 @@ class HomeService {
       throw Exception(result.message);
     }
   }
+}
 
-  String _sanitizeFileName(String fileName) {
-    final baseName = fileName.split(RegExp(r'[/\\]')).last;
-    final sanitized = baseName
-        .replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_')
-        .replaceAll('..', '_');
-    return sanitized.isEmpty || sanitized == '.' ? 'certificate' : sanitized;
-  }
+String sanitizeTemporaryFileName(String fileName) {
+  final baseName = fileName.split(RegExp(r'[/\\]')).last;
+  final sanitized = baseName
+      .replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_')
+      .replaceAll('..', '_');
+  return sanitized.isEmpty || sanitized == '.' ? 'certificate' : sanitized;
 }
