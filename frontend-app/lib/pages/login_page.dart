@@ -29,12 +29,14 @@ class _LoginPageState extends State<LoginPage> {
     if (!isValid) return;
 
     try {
-      final success = await Injector.I.get<AuthService>().logIn(
-        _emailCtrl.text,
-        _passwordCtrl.text,
-      );
+      final bool success = await Injector.I.get<AuthService>().logIn(
+            _emailCtrl.text,
+            _passwordCtrl.text,
+          );
 
-      if (!mounted) return;
+                            if (!mounted) {
+                              return;
+                            }
 
       if (success) {
         context.go(AppRoutes.home);
@@ -60,7 +62,8 @@ class _LoginPageState extends State<LoginPage> {
               constraints: const BoxConstraints(maxWidth: 500),
               child: Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 color: theme.colorScheme.surfaceContainerHighest,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -73,21 +76,31 @@ class _LoginPageState extends State<LoginPage> {
                           children: [
                             CircleAvatar(
                               radius: 22,
-                              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-                              child: Icon(Icons.verified, color: theme.colorScheme.primary),
+                              backgroundColor: theme.colorScheme.primary
+                                  .withValues(alpha: 0.12),
+                              child: Icon(Icons.verified,
+                                  color: theme.colorScheme.primary),
                             ),
                             const SizedBox(width: 12),
-                            Expanded(child: Text('Bem Vindo de volta!', style: theme.textTheme.headlineSmall)),
+                            Expanded(
+                                child: Text('Bem Vindo de volta!',
+                                    style: theme.textTheme.headlineSmall)),
                           ],
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(labelText: 'Email', hintText: 'email@email.com', prefixIcon: Icon(Icons.email)),
+                          decoration: const InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'email@email.com',
+                              prefixIcon: Icon(Icons.email)),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Insira seu email';
-                            final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim());
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Insira seu email';
+                            }
+                            final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                .hasMatch(v.trim());
                             return ok ? null : 'Enter a valid email';
                           },
                         ),
@@ -99,11 +112,18 @@ class _LoginPageState extends State<LoginPage> {
                             labelText: 'Senha',
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
-                              onPressed: () => setState(() => _obscure = !_obscure),
-                              icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: Colors.blue),
+                              onPressed: () =>
+                                  setState(() => _obscure = !_obscure),
+                              icon: Icon(
+                                  _obscure
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.blue),
                             ),
                           ),
-                          validator: (v) => (v == null || v.length < 6) ? 'Senha precisa ter no minimo 6 digitos' : null,
+                          validator: (v) => (v == null || v.length < 6)
+                              ? 'Senha precisa ter no minimo 6 digitos'
+                              : null,
                         ),
                         const SizedBox(height: 20),
                         FilledButton(

@@ -4,10 +4,26 @@ import 'package:organizacao_certificados/router/routes.dart';
 import 'package:organizacao_certificados/core/di/injector.dart';
 import 'package:organizacao_certificados/modules/auth/auth_service.dart';
 
-typedef PageBuilder = Widget Function(BuildContext context, GoRouterState state);
+typedef PageBuilder = Widget Function(
+    BuildContext context, GoRouterState state);
+
+String? redirectForAuth({required bool isLoggedIn, required String location}) {
+  if (!isLoggedIn &&
+      (RouteRegistry.isProtected(location) || location == AppRoutes.splash)) {
+    return AppRoutes.login;
+  }
+  if (isLoggedIn &&
+      (location == AppRoutes.login ||
+          location == AppRoutes.signIn ||
+          location == AppRoutes.splash)) {
+    return AppRoutes.home;
+  }
+  return null;
+}
 
 class RouteDefinition {
-  const RouteDefinition({required this.path, required this.builder, this.authRequired = false});
+  const RouteDefinition(
+      {required this.path, required this.builder, this.authRequired = false});
   final String path;
   final PageBuilder builder;
   final bool authRequired;
@@ -18,7 +34,8 @@ abstract class RouteModule {
 }
 
 class RouteRegistry {
-  static final Map<String, RouteDefinition> _routes = <String, RouteDefinition>{};
+  static final Map<String, RouteDefinition> _routes =
+      <String, RouteDefinition>{};
 
   static void registerAll(Iterable<RouteDefinition> defs) {
     for (final def in defs) {
@@ -48,7 +65,7 @@ class AppGoRouter {
         ),
     ];
 
-    final auth = Injector.I.isRegistered<AuthService>() ? Injector.I.get<AuthService>() : AuthService();
+    final auth = Injector.I.get<AuthService>();
 
     return GoRouter(
       navigatorKey: Nav.navigatorKey,
@@ -56,13 +73,10 @@ class AppGoRouter {
       routes: routes,
       refreshListenable: auth,
       redirect: (context, state) {
-        final isLogged = auth.isLoggedInSync;
-        final loc = state.matchedLocation;
-
-        if (!isLogged && loc != AppRoutes.login) return AppRoutes.login;
-        if (isLogged && (loc == AppRoutes.login || loc == AppRoutes.splash)) return AppRoutes.home;
-
-        return null;
+        return redirectForAuth(
+          isLoggedIn: auth.isLoggedInSync,
+          location: state.matchedLocation,
+        );
       },
       errorBuilder: (context, state) => Scaffold(
         appBar: AppBar(title: const Text('Not found')),

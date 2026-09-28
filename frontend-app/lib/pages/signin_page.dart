@@ -43,6 +43,7 @@ class _SignInPageState extends State<SignInPage> {
             SnackBar(content: Text('User created successfully!')),
           );
           _formKey.currentState!.reset();
+          context.go(AppRoutes.login);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to create user')),
@@ -57,7 +58,6 @@ class _SignInPageState extends State<SignInPage> {
 
       if (!mounted) return;
       setState(() => _isLoading = false);
-      context.go(AppRoutes.login);
     }
   }
 
