@@ -15,19 +15,25 @@ A certificate-management application with a Flutter client, a NestJS REST API, a
 
 ## Configuration
 
-Create `backend-app/.env` with the backend settings:
+For a new setup, copy `backend-app/.env.example` to `backend-app/.env` and set the backend settings. The example contains local-only MongoDB credentials; replace them before exposing the service. For an existing `.env`, add `MONGO_ROOT_USER` and `MONGO_ROOT_PASSWORD`, update `MONGODB_URL` to include those credentials and `authSource=admin`, and rename `APP_PORT` to `PORT`.
 
 ```env
 PORT=3000
-MONGODB_URL=mongodb://mongodb:27017/certificates
-JWT_STRATEGY=jwt
-JWT_SECRET=replace-with-a-long-random-secret
+MONGODB_URL=mongodb://certificates_admin:local-dev-password-change-me@localhost:27017/certificates?authSource=admin
+JWT_SECRET=replace-with-at-least-32-random-characters
 JWT_EXPIRES=1d
+CORS_ORIGINS=http://localhost:5000
+MONGO_ROOT_USER=certificates_admin
+MONGO_ROOT_PASSWORD=local-dev-password-change-me
 ```
 
-When running the API directly on your machine rather than in Docker, use `mongodb://localhost:27017/certificates` for `MONGODB_URL`.
+`JWT_SECRET` must be at least 32 characters. Generate a private production value with `openssl rand -base64 48`; never commit it. Rotating the value immediately invalidates all existing access tokens, so deploy the new value and require users to sign in again. `PORT` is the canonical API port, and `certificates` is the database name. The legacy `APP_PORT` remains a fallback when `PORT` is unset; rename it to `PORT` when updating existing `.env` files. Keep MongoDB credentials URL-safe or percent-encode them in `MONGODB_URL`.
 
-Create `frontend-app/.env` and set the API URL reachable from the device or emulator:
+Before deploying the email-normalization change to an existing database, set `MONGODB_URL` in the shell and run `mongosh "$MONGODB_URL" --file scripts/normalize-user-emails.js` from `backend-app/`. The script checks for addresses that would collide after trimming and lowercasing, prints them, and aborts without changing any records; resolve those accounts and rerun it before starting the new API.
+
+The development Compose stack publishes MongoDB only on `127.0.0.1:27017`, with authentication enabled. When running the API directly on the host, start only MongoDB with `docker compose up -d mongodb`; the example `MONGODB_URL` is configured for this case. The API container overrides it with the Compose service hostname.
+
+Create `frontend-app/.env` and set the API URL reachable from the device or emulator (the file is ignored by Git):
 
 ```env
 API_URL=http://localhost:3000
@@ -51,6 +57,10 @@ cd backend-app
 npm install
 npm run start:dev
 ```
+
+When running the API locally, use `PORT` and `MONGODB_URL` from `backend-app/.env`; the MongoDB server must have the configured root credentials enabled. `CORS_ORIGINS` is a comma-separated allowlist of browser origins.
+
+Changing a user password through `PATCH /users/:id` now requires both `currentPassword` and `password`; profile updates that do not change the password are unaffected.
 
 For the production Docker stack:
 
@@ -78,9 +88,11 @@ flutter run
 
 ## Tests
 
-Run backend tests from `backend-app/`:
+Run backend checks from `backend-app/`:
 
 ```bash
+npm run lint:check
+npm run build
 npm test
 npm run test:e2e
 npm run test:cov
@@ -90,4 +102,7 @@ Run Flutter tests from `frontend-app/`:
 
 ```bash
 flutter test
+flutter analyze
 ```
+
+GitHub Actions runs backend lint, build, unit and e2e tests with MongoDB, plus Flutter analysis and tests on pushes and pull requests.

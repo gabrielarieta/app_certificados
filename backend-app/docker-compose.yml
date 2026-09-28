@@ -1,14 +1,27 @@
 services:
   mongodb:
     image: mongo:7
-    env_file:
-      - .env
     ports:
-      - 27017:27017
+      - "127.0.0.1:27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:?Set MONGO_ROOT_USER in backend-app/.env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in backend-app/.env}
     volumes:
       - mongodb_data_container:/data/db
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - mongodb://$${MONGO_INITDB_ROOT_USERNAME}:$${MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/admin?authSource=admin
+        - --eval
+        - db.adminCommand('ping').ok
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
-  api: 
+  api:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -16,15 +29,17 @@ services:
       - .:/app
       - /app/node_modules
     ports:
-      - 3000:3000
+      - "${PORT:-${APP_PORT:-3000}}:${PORT:-${APP_PORT:-3000}}"
     command: npm run start:dev
     environment:
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "500"
+      MONGODB_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/certificates?authSource=admin
     env_file:
       - .env
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
 
 volumes:
   mongodb_data_container:
