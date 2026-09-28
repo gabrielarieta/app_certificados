@@ -33,6 +33,18 @@ Before deploying the email-normalization change to an existing database, set `MO
 
 The development Compose stack publishes MongoDB only on `127.0.0.1:27017`, with authentication enabled. When running the API directly on the host, start only MongoDB with `docker compose up -d mongodb`; the example `MONGODB_URL` is configured for this case. The API container overrides it with the Compose service hostname.
 
+Before enabling this Compose configuration on an existing MongoDB volume, back up the database and create the admin user while the old MongoDB instance is still running without authentication. In `mongosh admin`, run:
+
+```javascript
+db.createUser({
+	user: "certificates_admin",
+	pwd: passwordPrompt(),
+	roles: [{ role: "root", db: "admin" }],
+})
+```
+
+Use the same username and password in `MONGO_ROOT_USER`, `MONGO_ROOT_PASSWORD`, and the credentials in `MONGODB_URL`, then restart with the authenticated Compose configuration. Do not reuse the example password outside local development.
+
 Create `frontend-app/.env` and set the API URL reachable from the device or emulator (the file is ignored by Git):
 
 ```env
