@@ -10,12 +10,8 @@ services:
       - mongodb_data_container:/data/db
     healthcheck:
       test:
-        - CMD
-        - mongosh
-        - --quiet
-        - mongodb://$${MONGO_INITDB_ROOT_USERNAME}:$${MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/admin?authSource=admin
-        - --eval
-        - db.adminCommand('ping').ok
+        - CMD-SHELL
+        - 'mongosh --quiet "mongodb://$$MONGO_INITDB_ROOT_USERNAME:$$MONGO_INITDB_ROOT_PASSWORD@localhost:27017/admin?authSource=admin" --eval "db.adminCommand({ ping: 1 }).ok"'
       interval: 10s
       timeout: 5s
       retries: 5
