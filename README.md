@@ -20,6 +20,7 @@ For a new setup, copy `backend-app/.env.example` to `backend-app/.env` and set t
 ```env
 PORT=3000
 MONGODB_URL=mongodb://certificates_admin:local-dev-password-change-me@localhost:27017/certificates?authSource=admin
+CERTIFICATE_STORAGE_QUOTA_BYTES=52428800
 JWT_SECRET=replace-with-at-least-32-random-characters
 JWT_EXPIRES=1d
 CORS_ORIGINS=http://localhost:5000
@@ -30,6 +31,8 @@ MONGO_ROOT_PASSWORD=local-dev-password-change-me
 `JWT_SECRET` must be at least 32 characters. Generate a private production value with `openssl rand -base64 48`; never commit it. Rotating the value immediately invalidates all existing access tokens, so deploy the new value and require users to sign in again. `PORT` is the canonical API port, and `certificates` is the database name. The legacy `APP_PORT` remains a fallback when `PORT` is unset; rename it to `PORT` when updating existing `.env` files. Keep MongoDB credentials URL-safe or percent-encode them in `MONGODB_URL`.
 
 Before deploying the email-normalization change to an existing database, set `MONGODB_URL` in the shell and run `mongosh "$MONGODB_URL" --file scripts/normalize-user-emails.js` from `backend-app/`. The script checks for addresses that would collide after trimming and lowercasing, prints them, and aborts without changing any records; resolve those accounts and rerun it before starting the new API.
+
+Before deploying the certificate field rename, back up the database and run `mongosh "$MONGODB_URL" --file scripts/rename-certificate-fields.js` from `backend-app/`. The script renames `emitedBy`/`emitedOn` to `issuedBy`/`issuedOn`; it is idempotent for documents already migrated. `CERTIFICATE_STORAGE_QUOTA_BYTES` defaults to 50 MiB and is enforced when creating or attaching files.
 
 The development Compose stack publishes MongoDB only on `127.0.0.1:27017`, with authentication enabled. When running the API directly on the host, start only MongoDB with `docker compose up -d mongodb`; the example `MONGODB_URL` is configured for this case. The API container overrides it with the Compose service hostname.
 
@@ -97,6 +100,8 @@ cd frontend-app
 flutter pub get
 flutter run
 ```
+
+The current certificate file preview uses `dart:io`, `path_provider`, and `open_filex`; supported client platforms for this workflow are Android, iOS, macOS, Windows, and Linux. Flutter Web is not supported for opening certificate files until the file-opening implementation is moved behind a conditional platform abstraction.
 
 ## Tests
 

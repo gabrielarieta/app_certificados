@@ -5,6 +5,7 @@ export class CertificateFile implements ICertificateFiles {
   fileName: string;
   data: string;
   mimeType: string;
+  size: number;
   createdAt: Date;
   updatedAt: Date;
 }

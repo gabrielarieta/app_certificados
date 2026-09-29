@@ -14,10 +14,10 @@ export class Certificates {
   description: string;
 
   @Prop({ required: true })
-  emitedBy: string;
+  issuedBy: string;
 
   @Prop({ required: true })
-  emitedOn: string;
+  issuedOn: Date;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', select: false })
   user: User;

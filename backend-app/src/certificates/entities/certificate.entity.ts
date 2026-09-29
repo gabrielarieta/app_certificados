@@ -6,8 +6,8 @@ export class Certificates implements ICertificates {
   _id: string;
   title: string;
   description: string;
-  emitedBy: string;
-  emitedOn: Date;
+  issuedBy: string;
+  issuedOn: Date;
   user: IUser;
   certificateFiles: CertificateFile[];
   createdAt: Date;

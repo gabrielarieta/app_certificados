@@ -60,6 +60,32 @@ class ApiClient {
     }
   }
 
+  Future<http.Response> sendMultipart({
+    required String method,
+    required Uri uri,
+    required Map<String, String> fields,
+    required List<http.MultipartFile> files,
+    void Function(double progress)? onProgress,
+  }) async {
+    final request = http.MultipartRequest(method, uri)
+      ..fields.addAll(fields)
+      ..files.addAll(files);
+    final token = await _tokenProvider();
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    onProgress?.call(0);
+    final streamedResponse = await _client.send(request).timeout(timeout);
+    final response =
+        await http.Response.fromStream(streamedResponse).timeout(timeout);
+    onProgress?.call(1);
+    if (response.statusCode == 401) await onUnauthorized();
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(response.statusCode, _errorMessage(response));
+    }
+    return response;
+  }
+
   static Future<String?> _readStoredToken() async {
     return Injector.I.get<StorageKeysUtils>().getKey('auth_token');
   }

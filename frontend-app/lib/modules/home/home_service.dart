@@ -8,6 +8,7 @@ import 'package:organizacao_certificados/models/certificate.dart';
 import 'package:organizacao_certificados/models/certificate_files.dart';
 import 'package:organizacao_certificados/utils/api_client.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class HomeService {
   HomeService({ApiClient? apiClient})
@@ -29,6 +30,63 @@ class HomeService {
     final url = Uri.parse('$_baseUrl/certificates/$id');
     final response = await _apiClient.request(method: 'GET', uri: url);
     return Certificate.fromJson(jsonDecode(response.body));
+  }
+
+  Future<Certificate> createCertificate({
+    required String title,
+    required String description,
+    required String issuedBy,
+    required DateTime issuedOn,
+    required List<http.MultipartFile> files,
+    void Function(double progress)? onProgress,
+  }) async {
+    final response = await _apiClient.sendMultipart(
+      method: 'POST',
+      uri: Uri.parse('$_baseUrl/certificates'),
+      fields: {
+        'title': title,
+        'description': description,
+        'issuedBy': issuedBy,
+        'issuedOn': issuedOn.toIso8601String(),
+      },
+      files: files,
+      onProgress: onProgress,
+    );
+    return Certificate.fromJson(jsonDecode(response.body));
+  }
+
+  Future<Certificate> updateCertificate(
+    String id, {
+    String? title,
+    String? description,
+    String? issuedBy,
+    DateTime? issuedOn,
+  }) async {
+    final response = await _apiClient.request(
+      method: 'PATCH',
+      uri: Uri.parse('$_baseUrl/certificates/$id'),
+      body: {
+        if (title != null) 'title': title,
+        if (description != null) 'description': description,
+        if (issuedBy != null) 'issuedBy': issuedBy,
+        if (issuedOn != null) 'issuedOn': issuedOn.toIso8601String(),
+      },
+    );
+    return Certificate.fromJson(jsonDecode(response.body));
+  }
+
+  Future<void> deleteCertificate(String id) async {
+    await _apiClient.request(
+      method: 'DELETE',
+      uri: Uri.parse('$_baseUrl/certificates/$id'),
+    );
+  }
+
+  Future<void> deleteCertificateFile(String id) async {
+    await _apiClient.request(
+      method: 'DELETE',
+      uri: Uri.parse('$_baseUrl/certificate-files/$id'),
+    );
   }
 
   Future<void> openCertificateFile(CertificateFile file) async {

@@ -4,8 +4,8 @@ import { IUser } from 'src/users/interface/users.interface';
 export interface ICertificates {
   title: string;
   description: string;
-  emitedBy: string;
-  emitedOn: Date;
+  issuedBy: string;
+  issuedOn: Date;
   certificateFiles: ICertificateFiles[];
   user: IUser;
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/utils/jwt/jwt-auth.guard';
 import { CertificateFilesService } from './certificate-files.service';
 
@@ -19,12 +27,22 @@ export class CertificateFilesController {
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    return this.certificateFilesService.findOneById(id, req.user._id);
+  async findOneById(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    const file = await this.certificateFilesService.findOneById(
+      id,
+      req.user._id,
+    );
+    if (!file) throw new NotFoundException('Certificate file not found.');
+    return file;
   }
 
   @Delete(':id')
-  removeById(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    return this.certificateFilesService.removeById(id, req.user._id);
+  async removeById(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    const file = await this.certificateFilesService.removeById(
+      id,
+      req.user._id,
+    );
+    if (!file) throw new NotFoundException('Certificate file not found.');
+    return file;
   }
 }

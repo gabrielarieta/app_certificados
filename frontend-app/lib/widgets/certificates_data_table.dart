@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:organizacao_certificados/core/di/injector.dart';
 import 'package:organizacao_certificados/models/certificate.dart';
 import 'package:organizacao_certificados/models/certificate_files.dart';
@@ -152,45 +154,53 @@ class _CertificatesDataTableState extends State<CertificatesDataTable> {
                               setState(() => _hoveredCertificateId = cert.id),
                           onExit: (_) =>
                               setState(() => _hoveredCertificateId = null),
-                          child: Container(
-                            color: _hoveredCertificateId == cert.id
-                                ? hoverColor
-                                : (isExpanded
-                                    ? theme.colorScheme.surfaceContainerHighest
-                                    : baseColor),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    flex: 3,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Text(cert.title,
-                                          style: textTheme.bodyMedium),
-                                    )),
-                                Expanded(
-                                    flex: 2,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Text(cert.emitedBy,
-                                          style: textTheme.bodyMedium),
-                                    )),
-                                Expanded(
-                                    flex: 1,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Text(cert.emitedOn,
-                                          style: textTheme.bodyMedium),
-                                    )),
-                                IconButton(
-                                  icon: Icon(isExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down),
-                                  onPressed: () {
-                                    setState(() =>
-                                        _expandedMap[cert.id] = !isExpanded);
-                                  },
-                                ),
-                              ],
+                          child: InkWell(
+                            onTap: () => context.push(
+                              '/certificate/${Uri.encodeComponent(cert.id)}',
+                            ),
+                            child: Container(
+                              color: _hoveredCertificateId == cert.id
+                                  ? hoverColor
+                                  : (isExpanded
+                                      ? theme
+                                          .colorScheme.surfaceContainerHighest
+                                      : baseColor),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      flex: 3,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Text(cert.title,
+                                            style: textTheme.bodyMedium),
+                                      )),
+                                  Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Text(cert.issuedBy,
+                                            style: textTheme.bodyMedium),
+                                      )),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Text(
+                                            DateFormat.yMd('pt_BR')
+                                                .format(cert.issuedOn),
+                                            style: textTheme.bodyMedium),
+                                      )),
+                                  IconButton(
+                                    icon: Icon(isExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down),
+                                    onPressed: () {
+                                      setState(() =>
+                                          _expandedMap[cert.id] = !isExpanded);
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -241,6 +251,25 @@ class _CertificatesDataTableState extends State<CertificatesDataTable> {
                                                 : Icons.image),
                                         onPressed: () =>
                                             _openCertificateFile(file),
+                                      ),
+                                      IconButton(
+                                        tooltip: 'Delete file',
+                                        icon: const Icon(Icons.delete_outline),
+                                        onPressed: () async {
+                                          try {
+                                            await homeService
+                                                .deleteCertificateFile(file.id);
+                                            if (mounted) {
+                                              setState(_loadCertificates);
+                                            }
+                                          } catch (error) {
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(content: Text('$error')),
+                                            );
+                                          }
+                                        },
                                       ),
                                     ],
                                   ),

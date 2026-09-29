@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:organizacao_certificados/widgets/certificates_data_table.dart';
 
 class TopTableCard extends StatelessWidget {
-  const TopTableCard({super.key});
+  const TopTableCard({super.key, required this.onCreate});
+
+  final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,12 @@ class TopTableCard extends StatelessWidget {
                         style: theme.textTheme.titleMedium),
                   ],
                 ),
-                Icon(Icons.add_outlined, color: theme.colorScheme.primary),
+                IconButton(
+                  tooltip: 'Create certificate',
+                  onPressed: onCreate,
+                  icon: Icon(Icons.add_outlined,
+                      color: theme.colorScheme.primary),
+                ),
               ],
             ),
             const SizedBox(height: 8),

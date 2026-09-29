@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/testing.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:organizacao_certificados/models/certificate.dart';
 import 'package:organizacao_certificados/models/certificate_files.dart';
 import 'package:organizacao_certificados/modules/home/home_service.dart';
@@ -11,7 +12,8 @@ import 'package:organizacao_certificados/utils/api_client.dart';
 import 'package:organizacao_certificados/widgets/certificates_data_table.dart';
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
+    await initializeDateFormatting('pt_BR');
     dotenv.testLoad(fileInput: 'API_URL=http://localhost:3000');
   });
 
@@ -79,8 +81,8 @@ Certificate _certificateWithFile() {
   return Certificate(
     id: 'certificate-id',
     title: 'Certificate',
-    emitedBy: 'Issuer',
-    emitedOn: '2026-01-01',
+    issuedBy: 'Issuer',
+    issuedOn: DateTime(2026, 1, 1),
     certificateFiles: [
       CertificateFile(
         id: 'file-id',

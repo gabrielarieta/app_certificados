@@ -3,6 +3,8 @@ import { getModelToken } from '@nestjs/mongoose';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { Certificates } from 'src/certificates/entities/certificate.entity';
+import { CertificateFiles } from 'src/certificate-files/schemas/certificate-files.schema';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -10,6 +12,7 @@ describe('UsersService', () => {
   const usersModel = {
     find: jest.fn(),
     findById: jest.fn(),
+    findByIdAndDelete: jest.fn(),
     findByIdAndUpdate: jest.fn(
       (_id: string, update: Record<string, unknown>) => {
         updatedFields = update;
@@ -17,6 +20,11 @@ describe('UsersService', () => {
       },
     ),
   };
+  const certificatesModel = {
+    find: jest.fn(),
+    deleteMany: jest.fn(),
+  };
+  const certificateFilesModel = { deleteMany: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -25,6 +33,14 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         { provide: getModelToken(User.name), useValue: usersModel },
+        {
+          provide: getModelToken(Certificates.name),
+          useValue: certificatesModel,
+        },
+        {
+          provide: getModelToken(CertificateFiles.name),
+          useValue: certificateFilesModel,
+        },
       ],
     }).compile();
 
@@ -79,5 +95,23 @@ describe('UsersService', () => {
         currentPassword: 'wrong-password',
       }),
     ).rejects.toMatchObject({ status: 401 });
+  });
+
+  it('removes certificates and files when deleting a user', async () => {
+    usersModel.findByIdAndDelete.mockResolvedValue({ _id: 'user-id' });
+    certificatesModel.find.mockReturnValue({
+      select: jest
+        .fn()
+        .mockResolvedValue([{ certificateFiles: [{ _id: 'file-id' }] }]),
+    });
+
+    await service.removeById('user-id');
+
+    expect(certificateFilesModel.deleteMany).toHaveBeenCalledWith({
+      _id: { $in: ['file-id'] },
+    });
+    expect(certificatesModel.deleteMany).toHaveBeenCalledWith({
+      user: 'user-id',
+    });
   });
 });

@@ -15,7 +15,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -35,60 +34,17 @@ class HomePage extends StatelessWidget {
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
-                    TopTableCard(),
+                  children: [
+                    TopTableCard(
+                      onCreate: () => context.push(AppRoutes.certificateCreate),
+                    ),
                   ],
                 ),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child:
-                    Text('Activity history', style: theme.textTheme.titleLarge),
-              ),
-            ),
-            /* SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              sliver: _ActivityListSliver(items: []),
-            ), */
           ],
         ),
       ),
     );
   }
 }
-
-/*
-class _ActivityListSliver extends StatelessWidget {
-  const _ActivityListSliver({required this.items});
-  final List<ActivityItem> items;
-
-  void _openDetail(BuildContext context, String id) {
-    final path = '/certificate/${Uri.encodeComponent(id)}';
-    context.push(path);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final item = items[index];
-          return Card(
-            elevation: 0,
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: CircleAvatar(backgroundColor: Colors.blue.withValues(alpha: 0.12), child: Icon(item.icon, color: Colors.blue)),
-              title: Text(item.title, overflow: TextOverflow.ellipsis),
-              subtitle: Text(item.subtitle, overflow: TextOverflow.ellipsis),
-              trailing: Text(item.timeLabel, style: Theme.of(context).textTheme.bodySmall),
-              onTap: () => _openDetail(context, item.certId),
-            ),
-          );
-        },
-        childCount: items.length,
-      ),
-    );
-  }
-} */

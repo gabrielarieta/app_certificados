@@ -18,6 +18,7 @@ import { JwtAuthGuard } from 'src/utils/jwt/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { getFileValidator } from 'src/utils/pipes/file-parser.pipe';
 import { User } from 'src/users/entities/user.entity';
+import { UploadedCertificateFile } from 'src/certificate-files/certificate-files.service';
 
 interface AuthenticatedRequest {
   user: User;
@@ -41,7 +42,7 @@ export class CertificatesController {
   ) {
     return this.certificatesService.create(
       createCertificateDto,
-      files,
+      files as UploadedCertificateFile[],
       req.user,
     );
   }
@@ -54,6 +55,20 @@ export class CertificatesController {
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.certificatesService.findById(id, req.user._id);
+  }
+
+  @Post(':id/files')
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      limits: { fileSize: 1_000_000, files: 5 },
+    }),
+  )
+  appendFiles(
+    @Param('id') id: string,
+    @UploadedFiles(getFileValidator()) files: UploadedCertificateFile[],
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.certificatesService.appendFiles(id, files, req.user._id);
   }
 
   @Patch(':id')

@@ -4,16 +4,16 @@ class Certificate {
   final String id;
   final String title;
   final String? description;
-  final String emitedBy;
-  final String emitedOn;
+  final String issuedBy;
+  final DateTime issuedOn;
   final List<CertificateFile> certificateFiles;
 
   Certificate({
     required this.id,
     required this.title,
     this.description,
-    required this.emitedBy,
-    required this.emitedOn,
+    required this.issuedBy,
+    required this.issuedOn,
     required this.certificateFiles,
   });
 
@@ -22,11 +22,11 @@ class Certificate {
       id: json['_id'],
       title: json['title'],
       description: json['description'],
-      emitedBy: json['emitedBy'],
-      emitedOn: json['emitedOn'],
+      issuedBy: json['issuedBy'],
+      issuedOn: DateTime.parse(json['issuedOn'].toString()),
       certificateFiles: (json['certificateFiles'] as List<dynamic>?)
-          ?.map((e) => CertificateFile.fromJson(e))
-          .toList() ??
+              ?.map((e) => CertificateFile.fromJson(e))
+              .toList() ??
           [],
     );
   }
@@ -36,10 +36,10 @@ class Certificate {
       '_id': id,
       'title': title,
       'description': description,
-      'emitedBy': emitedBy,
-      'emitedOn': emitedOn,
+      'issuedBy': issuedBy,
+      'issuedOn': issuedOn.toIso8601String(),
       'certificateFiles':
-      certificateFiles.map((file) => file.toJson()).toList(),
+          certificateFiles.map((file) => file.toJson()).toList(),
     };
   }
 }
