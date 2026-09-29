@@ -89,6 +89,21 @@ class HomeService {
     );
   }
 
+  Future<Certificate> appendCertificateFiles(
+    String id,
+    List<http.MultipartFile> files, {
+    void Function(double progress)? onProgress,
+  }) async {
+    final response = await _apiClient.sendMultipart(
+      method: 'POST',
+      uri: Uri.parse('$_baseUrl/certificates/$id/files'),
+      fields: const {},
+      files: files,
+      onProgress: onProgress,
+    );
+    return Certificate.fromJson(jsonDecode(response.body));
+  }
+
   Future<void> openCertificateFile(CertificateFile file) async {
     final response = await _apiClient.request(
       method: 'GET',

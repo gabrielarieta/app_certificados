@@ -4,6 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:organizacao_certificados/core/di/injector.dart';
 import 'package:organizacao_certificados/models/certificate.dart';
 import 'package:organizacao_certificados/modules/home/home_service.dart';
+import 'package:organizacao_certificados/l10n/app_localizations.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
 
 class CertificateDetailPage extends StatefulWidget {
   const CertificateDetailPage({super.key, required this.certId});
@@ -33,16 +36,16 @@ class _CertificateDetailPageState extends State<CertificateDetailPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete certificate?'),
-        content: const Text('This also deletes its stored files.'),
+        title: Text(AppLocalizations.of(context).deleteCertificateTitle),
+        content: Text(AppLocalizations.of(context).deleteCertificateMessage),
         actions: [
           TextButton(
             onPressed: () => context.pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           FilledButton(
             onPressed: () => context.pop(true),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context).delete),
           ),
         ],
       ),
@@ -64,10 +67,45 @@ class _CertificateDetailPageState extends State<CertificateDetailPage> {
     }
   }
 
+  Future<void> _attachFiles(Certificate certificate) async {
+    final result = await FilePicker.pickFiles(
+      allowMultiple: true,
+      withData: true,
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+    );
+    if (result == null) return;
+    final files = <http.MultipartFile>[];
+    for (final file in result.files.take(5)) {
+      if (file.size > 1_000_000) continue;
+      if (file.bytes != null) {
+        files.add(http.MultipartFile.fromBytes('files', file.bytes!,
+            filename: file.name));
+      } else if (file.path != null) {
+        files.add(await http.MultipartFile.fromPath('files', file.path!,
+            filename: file.name));
+      }
+    }
+    if (files.isEmpty) return;
+    try {
+      await _service.appendCertificateFiles(certificate.id, files);
+      if (mounted) {
+        setState(_load);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).fileAttached)),
+        );
+      }
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Certificate details')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).certificateDetails),
+      ),
       body: FutureBuilder<Certificate>(
         future: _certificateFuture,
         builder: (context, snapshot) {
@@ -76,7 +114,9 @@ class _CertificateDetailPageState extends State<CertificateDetailPage> {
           }
           if (snapshot.hasError) {
             return Center(
-              child: Text('Unable to load certificate: ${snapshot.error}'),
+              child: Text(
+                '${AppLocalizations.of(context).unableToLoadCertificate} ${snapshot.error}',
+              ),
             );
           }
           final certificate = snapshot.data!;
@@ -95,13 +135,19 @@ class _CertificateDetailPageState extends State<CertificateDetailPage> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 12),
-        _DetailLine(label: 'Issuer', value: certificate.issuedBy),
         _DetailLine(
-          label: 'Issue date',
+          label: AppLocalizations.of(context).issuer,
+          value: certificate.issuedBy,
+        ),
+        _DetailLine(
+          label: AppLocalizations.of(context).issueDate,
           value: DateFormat.yMMMMd('pt_BR').format(certificate.issuedOn),
         ),
         if ((certificate.description ?? '').isNotEmpty)
-          _DetailLine(label: 'Description', value: certificate.description!),
+          _DetailLine(
+            label: AppLocalizations.of(context).description,
+            value: certificate.description!,
+          ),
         const SizedBox(height: 20),
         Row(
           children: [
@@ -114,18 +160,26 @@ class _CertificateDetailPageState extends State<CertificateDetailPage> {
                 if (changed == true && mounted) setState(_load);
               },
               icon: const Icon(Icons.edit),
-              label: const Text('Edit'),
+              label: Text(AppLocalizations.of(context).edit),
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
               onPressed: () => _deleteCertificate(certificate),
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Delete'),
+              label: Text(AppLocalizations.of(context).delete),
             ),
           ],
         ),
         const SizedBox(height: 20),
-        const Text('Files', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          AppLocalizations.of(context).files,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        OutlinedButton.icon(
+          onPressed: () => _attachFiles(certificate),
+          icon: const Icon(Icons.attach_file),
+          label: Text(AppLocalizations.of(context).attachFiles),
+        ),
         ...certificate.certificateFiles.map(
           (file) => ListTile(
             leading: Icon(
@@ -135,7 +189,7 @@ class _CertificateDetailPageState extends State<CertificateDetailPage> {
             ),
             title: Text(file.fileName),
             trailing: IconButton(
-              tooltip: 'Open file',
+              tooltip: AppLocalizations.of(context).openFile,
               icon: const Icon(Icons.open_in_new),
               onPressed: () async {
                 try {

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:organizacao_certificados/core/di/injector.dart';
 import 'package:organizacao_certificados/models/certificate.dart';
 import 'package:organizacao_certificados/modules/home/home_service.dart';
+import 'package:organizacao_certificados/l10n/app_localizations.dart';
 
 class CertificateFormPage extends StatefulWidget {
   const CertificateFormPage({super.key, this.initial});
@@ -49,6 +50,7 @@ class _CertificateFormPageState extends State<CertificateFormPage> {
   }
 
   Future<void> _pickFiles() async {
+    final l10n = AppLocalizations.of(context);
     final result = await FilePicker.pickFiles(
       allowMultiple: true,
       withData: true,
@@ -67,7 +69,7 @@ class _CertificateFormPageState extends State<CertificateFormPage> {
         .take(5)
         .toList();
     if (validFiles.length != result.files.length) {
-      _showMessage('Only JPG, PNG, and PDF files up to 1 MB are allowed.');
+      _showMessage(l10n.onlyAllowedFiles);
     }
     setState(() => _files = validFiles);
   }
@@ -99,7 +101,7 @@ class _CertificateFormPageState extends State<CertificateFormPage> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_isEditing && _files.isEmpty) {
-      _showMessage('Select at least one certificate file.');
+      _showMessage(AppLocalizations.of(context).selectAtLeastOneFile);
       return;
     }
     setState(() => _isSubmitting = true);
@@ -151,7 +153,11 @@ class _CertificateFormPageState extends State<CertificateFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit certificate' : 'New certificate'),
+        title: Text(
+          _isEditing
+              ? AppLocalizations.of(context).editCertificate
+              : AppLocalizations.of(context).newCertificate,
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -160,26 +166,29 @@ class _CertificateFormPageState extends State<CertificateFormPage> {
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).title),
               validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Enter a title'
+                  ? AppLocalizations.of(context).enterTitle
                   : null,
             ),
             TextFormField(
               controller: _issuerController,
-              decoration: const InputDecoration(labelText: 'Issuer'),
+              decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).issuer),
               validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Enter an issuer'
+                  ? AppLocalizations.of(context).enterIssuer
                   : null,
             ),
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
+              decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).description),
               maxLines: 3,
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Issue date'),
+              title: Text(AppLocalizations.of(context).issueDate),
               subtitle: Text(DateFormat.yMMMMd('pt_BR').format(_issuedOn)),
               trailing: IconButton(
                 onPressed: _selectDate,
@@ -190,7 +199,8 @@ class _CertificateFormPageState extends State<CertificateFormPage> {
               OutlinedButton.icon(
                 onPressed: _isSubmitting ? null : _pickFiles,
                 icon: const Icon(Icons.attach_file),
-                label: Text('Select files (${_files.length}/5)'),
+                label: Text(
+                    AppLocalizations.of(context).selectFiles(_files.length)),
               ),
               ..._files.map(
                 (file) => ListTile(
@@ -210,7 +220,11 @@ class _CertificateFormPageState extends State<CertificateFormPage> {
             FilledButton.icon(
               onPressed: _isSubmitting ? null : _submit,
               icon: const Icon(Icons.save),
-              label: Text(_isEditing ? 'Save changes' : 'Create certificate'),
+              label: Text(
+                _isEditing
+                    ? AppLocalizations.of(context).saveChanges
+                    : AppLocalizations.of(context).createCertificate,
+              ),
             ),
           ],
         ),

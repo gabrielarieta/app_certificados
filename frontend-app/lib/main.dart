@@ -10,6 +10,7 @@ import 'package:organizacao_certificados/modules/core/splash_module.dart';
 import 'package:organizacao_certificados/modules/auth/auth_module.dart';
 import 'package:organizacao_certificados/modules/home/home_module.dart';
 import 'package:organizacao_certificados/utils/storage_keys_utils.dart';
+import 'package:organizacao_certificados/l10n/app_localizations.dart';
 
 Future<void> main() async {
   await initializeDateFormatting('pt_BR');
@@ -43,6 +44,8 @@ class MyApp extends StatelessWidget {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: AppGoRouter.router(),
     );
   }

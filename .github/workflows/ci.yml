@@ -28,6 +28,7 @@ jobs:
       MONGODB_URL: mongodb://ci_user:ci_password@localhost:27017/certificates?authSource=admin
       JWT_SECRET: ci-only-test-secret-that-is-not-used-in-production
       JWT_EXPIRES: 1d
+      RUN_DB_E2E: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

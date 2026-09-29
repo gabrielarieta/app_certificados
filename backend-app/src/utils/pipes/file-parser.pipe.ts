@@ -7,7 +7,8 @@ import {
 export function getFileValidator(): PipeTransform {
   return new ParseFilePipeBuilder()
     .addFileTypeValidator({
-      fileType: /(jpg|jpeg|png|pdf)$/,
+      fileType: /^(image\/(jpeg|png)|application\/pdf)$/,
+      fallbackToMimetype: true,
     })
     .addMaxSizeValidator({
       maxSize: 1000 * 1000,
