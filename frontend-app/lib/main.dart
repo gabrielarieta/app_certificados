@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:organizacao_certificados/config/app_config.dart';
 import 'package:organizacao_certificados/modules/auth/auth_service.dart';
 import 'package:organizacao_certificados/theme.dart';
 import 'package:organizacao_certificados/router/app_router.dart';
@@ -15,6 +16,7 @@ import 'package:organizacao_certificados/l10n/app_localizations.dart';
 Future<void> main() async {
   await initializeDateFormatting('pt_BR');
   await dotenv.load(fileName: ".env");
+  final _ = AppConfig.apiUrl;
   _bootstrapModules();
   await checkIfLoggedIn();
   runApp(const MyApp());

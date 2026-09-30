@@ -1,16 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:organizacao_certificados/config/app_config.dart';
 import 'package:organizacao_certificados/core/di/injector.dart';
 import 'package:organizacao_certificados/utils/api_client.dart';
 import 'package:organizacao_certificados/utils/storage_keys_utils.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService extends ChangeNotifier {
   AuthService({required ApiClient apiClient}) : _apiClient = apiClient;
 
   final ApiClient _apiClient;
-  final String _baseUrl = dotenv.env['API_URL']!;
+  final String _baseUrl = AppConfig.apiUrl;
   static const _tokenKey = 'auth_token';
 
   bool _isLoggedIn = false;

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:organizacao_certificados/config/app_config.dart';
 import 'package:organizacao_certificados/core/di/injector.dart';
 import 'package:organizacao_certificados/models/certificate.dart';
 import 'package:organizacao_certificados/models/certificate_files.dart';
@@ -12,7 +12,7 @@ import 'package:http/http.dart' as http;
 
 class HomeService {
   HomeService({ApiClient? apiClient})
-      : _baseUrl = dotenv.env['API_URL'] ?? '',
+      : _baseUrl = AppConfig.apiUrl,
         _apiClient = apiClient ?? Injector.I.get<ApiClient>();
 
   final String _baseUrl;
