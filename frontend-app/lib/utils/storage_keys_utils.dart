@@ -14,15 +14,15 @@ class StorageKeysUtils {
     ),
   );
   
-  getKey(String key) async {
+  Future<String?> getKey(String key) async {
     return await _storage.read(key: key);
   }
 
-  setKey(String key, String value) async {
+  Future<void> setKey(String key, String value) async {
     await _storage.write(key: key, value: value);
   }
 
-  deleteKey(String key) async {
+  Future<void> deleteKey(String key) async {
     await _storage.delete(key: key);
   }
 
